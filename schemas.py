@@ -1,48 +1,40 @@
 """
-Database Schemas
+Database Schemas for Little Years Grandparent Portal
 
-Define your MongoDB collection schemas here using Pydantic models.
-These schemas are used for data validation in your application.
-
-Each Pydantic model represents a collection in your database.
-Model name is converted to lowercase for the collection name:
-- User -> "user" collection
-- Product -> "product" collection
-- BlogPost -> "blogs" collection
+Each Pydantic model represents a collection in MongoDB.
+Collection name is the lowercase of the class name, e.g. Kid -> "kid".
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, HttpUrl
+from typing import List, Optional, Literal
+from datetime import date
 
-# Example schemas (replace with your own):
+# Core entities
 
-class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+class Kid(BaseModel):
+    name: str = Field(..., description="Full name of the child")
+    nickname: Optional[str] = Field(None, description="Nickname")
+    birthdate: Optional[date] = Field(None, description="Birth date")
+    avatar_url: Optional[str] = Field(None, description="Avatar/photo URL")
+    parent_email: str = Field(..., description="Primary parent email")
+    allowed_grandparents: List[str] = Field(default_factory=list, description="Emails with viewing access")
 
-class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
 
-# Add your own schemas here:
-# --------------------------------------------------
+class Moment(BaseModel):
+    kid_id: str = Field(..., description="Reference to Kid (_id as string)")
+    type: Literal["photo", "art", "audio", "video", "note"] = Field("photo", description="Type of moment")
+    title: str = Field(..., description="Title of the moment")
+    description: Optional[str] = Field(None, description="Short description/caption")
+    media_url: Optional[str] = Field(None, description="URL to media (image/audio/video)")
+    thumbnail_url: Optional[str] = Field(None, description="Optional thumbnail URL")
+    visibility: Literal["public", "private"] = Field("public", description="Visibility for grandparents")
+    tags: List[str] = Field(default_factory=list, description="Tags for search/filtering")
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+
+# Optional: Public item (e.g., a keepsake or favorite item)
+class Item(BaseModel):
+    kid_id: str = Field(..., description="Reference to Kid (_id as string)")
+    name: str
+    description: Optional[str] = None
+    image_url: Optional[str] = None
+    visibility: Literal["public", "private"] = "public"
