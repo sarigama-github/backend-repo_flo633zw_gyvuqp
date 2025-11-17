@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+app = FastAPI(title="Little Years Backend", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -13,8 +13,8 @@ app.add_middleware(
 )
 
 @app.get("/")
-def read_root():
-    return {"message": "Hello from FastAPI Backend!"}
+def healthcheck():
+    return {"status": "ok"}
 
 @app.get("/api/hello")
 def hello():
